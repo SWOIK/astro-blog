@@ -1,6 +1,6 @@
 <!--
   SWOIK Scroll Hero (mobile) - วางทั้งไฟล์นี้ใน Elementor > HTML widget
-  - ไม่มี library / ไม่มีไฟล์ภายนอก (HTML+CSS+JS ~ 19 KB, gzip ~ 6 KB ก่อน minify)
+  - ไม่มี library / ไม่มีไฟล์ภายนอก (HTML+CSS+JS ~ 21 KB, gzip ~ 6.7 KB ก่อน minify)
   - Canvas 2D, ขับเคลื่อนด้วย scroll (scroll-scrubbed), หยุดวาดเมื่ออยู่นอกจอ
   - ข้อความ h1 / คำอธิบาย / ปุ่ม เป็น HTML จริง (Google อ่านได้, เป็น LCP)
   ปรับความยาวการเลื่อน: เปลี่ยน --swk-len (ค่า 300svh = เลื่อน 3 หน้าจอ)
@@ -151,40 +151,57 @@
 <script>
   (function () {
     "use strict";
-    /* โลโก้ 22x26 ช่อง: . = ว่าง, # = น้ำเงิน, + = น้ำเงินอ่อน (แก้ได้เองทีละช่อง) */
+    /* โลโก้ 34x42 ช่อง: . = ว่าง, # = น้ำเงิน, + = น้ำเงินอ่อน (แก้ได้เองทีละช่อง) */
     var LOGO = [
-      "...#######+#+#######++",
-      "...+##############+#+.",
-      "...############++#++#.",
-      "...##################.",
-      "...+##+###+###+##+##..",
-      "...####+#+#+########..",
-      "...##.................",
-      "..##+.................",
-      "..###.................",
-      "..+##.................",
-      "..###.................",
-      "..###...++..##..##....",
-      "..#+#...##.###.###....",
-      "..#####.##.###.##.....",
-      "..#####.##.#+#.##.....",
-      ".##+###.##.#####......",
-      ".######.+#######......",
-      ".###....####+###......",
-      ".###....###.###.......",
-      ".#+#....+##.###.......",
-      ".+##....###.###.......",
-      ".+#+....##..+#........",
-      ".++...................",
-      "###...................",
-      "##....................",
-      "#....................."
+      ".....#+######+######+++#+##+######",
+      ".....##+#########+###+######+#####",
+      ".....######+++++#+#+#+####+##+#+##",
+      ".....###+++##+#+###+##+####+###+#.",
+      ".....####++###+####+#####++######.",
+      ".....#+###+#+##+#############+##..",
+      ".....#######+####+####+#######+#..",
+      "....#+####+#+###+#######+######...",
+      "....##+##+#######+########+####...",
+      "....##+##.........................",
+      "....###+#.........................",
+      "....##++..........................",
+      "....+###..........................",
+      "....####..........................",
+      "....##+#..........................",
+      "...####+..........................",
+      "...###+#..........................",
+      "...#####.....###...###...#+#......",
+      "...++#+#.....+#+..++##...##+......",
+      "...###+......##+..+###..###+......",
+      "...#+#+......##+..####..###.......",
+      "...+####+###.###.####+..###.......",
+      "...########+.#+#.#####.##+#.......",
+      "..#########..###.#+###.###........",
+      "..#+#######..+##.#+#######........",
+      "..########+..#######+####.........",
+      "..#+####+#+..##+####+####.........",
+      "..####.......#####.#+##+#.........",
+      "..++++.......#####.#####..........",
+      "..+#++.......#####.#####..........",
+      "..####.......#+###.+####..........",
+      ".####+.......##+#..+###...........",
+      ".##+++.......#++#..+###...........",
+      ".#####.......#++#..+++............",
+      ".#####.......###...###............",
+      ".###+.............................",
+      ".####.............................",
+      ".+##..............................",
+      "#+#...............................",
+      "##................................",
+      "#.................................",
+      "#................................."
     ];
     var BG = "#040404";
-    var C_BLUE = [31, 108, 240];
-    var C_LIGHT = [104, 164, 255];
+    var C_BLUE = [21, 110, 246];
+    var C_LIGHT = [94, 158, 255];
     var C_WHITE = [226, 236, 255];
     var C_GRAY = [26, 32, 46];
+    var LOGO_W = 0.7; /* ความกว้างโลโก้เทียบกับความกว้างจอ */
     var FLOOR_ROWS = 10;
     var HORIZON = 0.38;
     var TAU = Math.PI * 2;
@@ -233,7 +250,7 @@
       root.className += " swk-js";
 
       var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-      var W = 0, H = 0, dpr = 1, S = 1;
+      var W = 0, H = 0, dpr = 1, S = 1, BW = 9, BH = 4.5, LW = 5, LH = 2.5, LKd = 8, PYd = 4, LWd = 7, LHd = 3;
       var rows = [], parts = [], sprites = {}, glow = null, ambient = null;
       var cur = reduce ? 0.5 : 0, target = cur, last = 0, raf = 0, visible = true;
       var lastIn = -1, lastHint = -1, isIn = false;
@@ -248,8 +265,8 @@
         g.arcTo(x, y, x + w, y, r);
         g.closePath();
       }
-      function sprite(rgb) {
-        var c = mk(18 * S * dpr, 9 * S * dpr);
+      function sprite(rgb, w, h) {
+        var c = mk(w || BW * dpr, h || BH * dpr);
         var g = c.getContext("2d");
         g.fillStyle = "rgb(" + rgb.join(",") + ")";
         rr(g, 0, 0, c.width, c.height, c.height * 0.3);
@@ -282,8 +299,9 @@
       function makeParticles() {
         var rnd = mulberry32(20241108);
         var cols = LOGO[0].length, nr = LOGO.length;
-        var px = 20 * S, py = 10.8 * S;
-        var lx = W * 0.499 - (cols * px) / 2, ly = H * 0.509 - (nr * py) / 2;
+        var px = LKd / dpr, py = PYd / dpr;
+        var lxd = Math.round(W * 0.499 * dpr - (cols * LKd) / 2), lyd = Math.round(H * 0.509 * dpr - (nr * PYd) / 2);
+        var lx = lxd / dpr, ly = lyd / dpr;
         parts = [];
         function gauss() {
           return (rnd() + rnd() + rnd() - 1.5) / 1.5;
@@ -313,10 +331,10 @@
         for (var r = 0; r < nr; r++) {
           for (var c = 0; c < cols; c++) {
             var ch = LOGO[r].charAt(c);
-            if (ch !== ".") make(lx + (c + 0.5) * px, ly + (r + 0.5) * py, ch === "+", false);
+            if (ch !== ".") make((lxd + c * LKd + LWd / 2) / dpr, (lyd + r * PYd + LHd / 2) / dpr, ch === "+", false);
           }
         }
-        var dust = Math.round(parts.length * 0.4);
+        var dust = Math.round(parts.length * 0.12);
         for (var i = 0; i < dust; i++) make(0, 0, false, true);
         /* glow: วาดโลโก้ย่อ 1/8 แล้วขยายซ้ำเป็นขั้น ๆ = เบลอโดยไม่ใช้ ctx.filter (Safari ใช้ได้) */
         var pad = 44 * S, gw = cols * px + pad * 2, gh = nr * py + pad * 2;
@@ -325,7 +343,7 @@
         for (var j = 0; j < parts.length; j++) {
           var p = parts[j];
           if (p.dust) continue;
-          g1.fillRect((p.hx - (lx - pad) - 9 * S) / 8, (p.hy - (ly - pad) - 4.5 * S) / 8, (18 * S) / 8, (9 * S) / 8);
+          g1.fillRect((p.hx - (lx - pad) - LW / 2) / 8, (p.hy - (ly - pad) - LH / 2) / 8, LW / 8, LH / 8);
         }
         var c2 = mk(gw / 4, gh / 4);
         c2.getContext("2d").drawImage(c1, 0, 0, c2.width, c2.height);
@@ -345,7 +363,19 @@
         cv.width = Math.round(W * dpr);
         cv.height = Math.round(H * dpr);
         S = W / 780;
-        sprites = { blue: sprite(C_BLUE), light: sprite(C_LIGHT), white: sprite(C_WHITE), gray: sprite(C_GRAY) };
+        BW = 18 * S;
+        BH = 9 * S;
+        /* ขนาดกระเบื้องโลโก้ ปัดเป็นพิกเซลจริงของจอ เพื่อให้คมตอนค้างโลโก้ */
+        LKd = Math.max(2, Math.round((W * LOGO_W * dpr) / LOGO[0].length));
+        PYd = Math.max(2, Math.round(LKd * 0.538));
+        LWd = LKd - Math.max(1, Math.round(LKd * 0.143));
+        LHd = PYd - Math.max(1, Math.round(PYd * 0.174));
+        LW = LWd / dpr;
+        LH = LHd / dpr;
+        sprites = {
+          blue: sprite(C_BLUE), light: sprite(C_LIGHT), white: sprite(C_WHITE), gray: sprite(C_GRAY),
+          lblue: sprite(C_BLUE, LWd, LHd), llight: sprite(C_LIGHT, LWd, LHd)
+        };
         makeFloor();
         makeParticles();
         return true;
@@ -354,9 +384,10 @@
       /* ---------- วาด ---------- */
       function drawFloor(p) {
         var b = seg(p, 0.76, 0.86) * (1 - seg(p, 0.86, 0.97));
+        var dim = 1 - 0.6 * sm(0.3, 0.44, p) * (1 - sm(0.64, 0.72, p));
         for (var i = 0; i < rows.length; i++) {
           var r = rows[i];
-          ctx.fillStyle = "rgba(" + C_GRAY.join(",") + "," + Math.min(1, r.a * (1 + 0.9 * b)).toFixed(3) + ")";
+          ctx.fillStyle = "rgba(" + C_GRAY.join(",") + "," + Math.min(1, r.a * dim * (1 + 0.9 * b)).toFixed(3) + ")";
           var off = r.dir * r.sp * p * W;
           var base = -(((off % r.L) + r.L) % r.L);
           for (var s = base - r.L; s < W; s += r.L) {
@@ -374,12 +405,12 @@
         if (form <= 0.01) return;
         var pulse = 0.85 + 0.15 * Math.sin(p * 42);
         ctx.globalCompositeOperation = "lighter";
-        ctx.globalAlpha = form * 0.9;
+        ctx.globalAlpha = form * 0.5;
         ctx.fillStyle = ambient;
         ctx.fillRect(0, 0, W, H);
-        ctx.globalAlpha = form * pulse * 0.75;
-        ctx.drawImage(glow.c1, glow.x - 14 * S, glow.y - 14 * S, glow.w + 28 * S, glow.h + 28 * S);
-        ctx.globalAlpha = form * pulse;
+        ctx.globalAlpha = form * pulse * 0.2;
+        ctx.drawImage(glow.c1, glow.x - 8 * S, glow.y - 8 * S, glow.w + 16 * S, glow.h + 16 * S);
+        ctx.globalAlpha = form * pulse * 0.7;
         ctx.drawImage(glow.c3, glow.x, glow.y, glow.w, glow.h);
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = "source-over";
@@ -392,7 +423,7 @@
         ctx.drawImage(img, -w / 2, -h / 2, w, h);
       }
       function drawParts(p) {
-        var tw = 18 * S, th = 9 * S;
+        var tw = BW, th = BH, kl = LW / BW;
         for (var i = 0; i < parts.length; i++) {
           var q = parts[i];
           var g = seg(p, 0.06 + q.d1 * 0.06, 0.26 + q.d1 * 0.04);
@@ -415,15 +446,19 @@
             x = lerp(q.bx, q.hx, e) + Math.sin(Math.PI * e) * q.curve * 0.5;
             y = lerp(q.by, q.hy, e);
             rot = q.rot * 2 * (1 - e);
-            k = lerp(0.8, 1, e);
+            k = lerp(0.8, kl, e);
             a = lerp(0.45, 1, e);
             if (q.dust) a *= 1 - e;
+            else if (f >= 1) {
+              put(q.light ? sprites.llight : sprites.lblue, x, y, LW, LH, 0, 1);
+              continue;
+            }
           } else if (s <= 0) {
             e = eo(xp);
             x = lerp(q.hx, q.dx, e);
             y = lerp(q.hy, q.dy, e);
             rot = q.rot2 * e;
-            k = lerp(1, q.sz, e);
+            k = lerp(kl, q.sz, e);
             a = q.dust ? sm(0, 0.25, xp) : 1;
           } else {
             e = eio(s);
