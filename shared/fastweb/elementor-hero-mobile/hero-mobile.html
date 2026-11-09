@@ -1,20 +1,32 @@
 <!--
-  SWOIK Scroll Hero (mobile) - วางทั้งไฟล์นี้ใน Elementor > HTML widget
-  - ไม่มี library / ไม่มีไฟล์ภายนอก (HTML+CSS+JS ~ 21 KB, gzip ~ 6.7 KB ก่อน minify)
-  - Canvas 2D, ขับเคลื่อนด้วย scroll (scroll-scrubbed), หยุดวาดเมื่ออยู่นอกจอ
-  - ข้อความ h1 / คำอธิบาย / ปุ่ม เป็น HTML จริง (Google อ่านได้, เป็น LCP)
-  ปรับความยาวการเลื่อน: เปลี่ยน --swk-len (ค่า 300svh = เลื่อน 3 หน้าจอ)
+  Fastweb Scroll Hero - วางทั้งไฟล์นี้ใน Elementor > HTML widget (header ใช้ของ Elementor แยกต่างหาก)
+  - ไม่มี library / ไม่มีไฟล์ภายนอก / ไม่มี request เพิ่ม (รูป "นัดคุย" ฝังเป็น data URI ขนาด ~1.5 KB)
+  - กระเบื้องพื้น = pixel FW = เศษวงกลม เป็นอนุภาคชุดเดียวกัน แค่เปลี่ยนรูปร่างตามการ scroll
+  - ข้อความ ปุ่ม เป็น HTML จริง (Google อ่านได้) จัดสไตล์ด้วย class ไม่ผูกกับชื่อ tag
+    จึงเปลี่ยน <div class="swk-lead"> / <h1 class="swk-title"> เป็น tag อื่นได้โดยแก้แค่ชื่อ tag เปิด-ปิด
+  ปรับความยาวการเลื่อน: --swk-len (300svh = เลื่อน 3 หน้าจอ)
 -->
 <style>
   .swk-hero {
     --swk-len: 300svh; /* ระยะ scroll ที่ใช้เล่นแอนิเมชัน */
-    --swk-top: 0px; /* ถ้ามี fixed header ให้ใส่ความสูง header */
-    --swk-accent: #1f6cf0;
+    --swk-top: 0px; /* ถ้า header ติดอยู่ด้านบนแบบ sticky ให้ใส่ความสูง header */
+    --swk-lead-top: 99px; /* ตำแหน่งข้อความนำจากขอบบน (header แบบลอยทับ = 99px, header อยู่เหนือ hero = 24px) */
+    --swk-bottom: 40px; /* ระยะปุ่มจากขอบล่าง */
+    --swk-gutter: 20px;
+    --swk-bg: #040404;
+    --swk-white: #ffffff;
+    --swk-muted: #98a1b3;
+    --swk-dark: #050506;
+    --swk-accent: #126ef5;
+    --swk-chip-bg: #141825;
+    --swk-chip-line: #373a4c;
+    --swk-avatar-filter: grayscale(1); /* ใส่ none ถ้าต้องการรูปสี */
     position: relative;
     width: 100%;
     height: 400vh; /* fallback เบราว์เซอร์เก่าที่ไม่รู้จัก svh */
     height: calc(100svh + var(--swk-len));
-    background: #040404;
+    background: var(--swk-bg);
+    font-family: var(--swk-font, inherit); /* ค่าเริ่มต้น = ฟอนต์ของเว็บไซต์ ไม่โหลดฟอนต์เพิ่ม */
   }
   .swk-stage {
     position: sticky;
@@ -22,8 +34,8 @@
     height: calc(100vh - var(--swk-top));
     height: calc(100svh - var(--swk-top));
     overflow: hidden;
-    background: #040404;
-    color: #fff;
+    background: var(--swk-bg);
+    color: var(--swk-white);
   }
   .swk-cv {
     position: absolute;
@@ -32,119 +44,148 @@
     height: 100%;
     display: block;
   }
-  .swk-copy {
+  .swk-top {
     position: absolute;
-    left: 0;
-    right: 0;
-    top: 8svh;
-    padding: 0 24px;
-    text-align: center;
-    pointer-events: none;
-  }
-  .swk-hero .swk-h1 {
-    margin: 0;
-    color: #fff;
-    font: 700 clamp(26px, 8vw, 40px) / 1.15 system-ui, -apple-system, "Segoe UI", sans-serif;
-    letter-spacing: -0.01em;
-  }
-  .swk-hero .swk-sub {
-    margin: 12px auto 0;
-    max-width: 30em;
-    color: #9fb4d6;
-    font: 400 clamp(14px, 4vw, 17px) / 1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
-    opacity: var(--swk-in, 1);
-  }
-  .swk-hero .swk-cta {
-    position: absolute;
-    left: 50%;
-    bottom: 9svh;
-    transform: translateX(-50%);
-    padding: 14px 30px;
-    border-radius: 999px;
-    background: var(--swk-accent);
-    color: #fff;
-    font: 600 16px / 1 system-ui, -apple-system, "Segoe UI", sans-serif;
-    text-decoration: none;
-    white-space: nowrap;
-    box-shadow: 0 0 28px rgba(31, 108, 240, 0.45);
-    opacity: var(--swk-in, 1);
-  }
-  .swk-js .swk-cta {
-    pointer-events: none;
-  }
-  .swk-js.swk-in .swk-cta,
-  .swk-js .swk-cta:focus-visible {
-    pointer-events: auto;
-    opacity: 1;
-  }
-  .swk-hint {
-    position: absolute;
-    left: 50%;
-    bottom: 4svh;
-    transform: translateX(-50%);
+    left: var(--swk-gutter);
+    right: var(--swk-gutter);
+    top: var(--swk-lead-top);
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .swk-hero .swk-lead {
+    margin: 0;
+    color: var(--swk-white);
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+  }
+  .swk-hero .swk-chip {
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    color: #8aa4cf;
-    font: 500 11px / 1 system-ui, -apple-system, sans-serif;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    opacity: var(--swk-hint, 1);
-    pointer-events: none;
+    gap: 12px;
+    padding: 8px 12px;
+    border: 1px solid var(--swk-chip-line);
+    border-radius: 4px;
+    background: var(--swk-chip-bg);
+    font-size: 16px;
+    line-height: 28px;
+    text-decoration: none;
   }
-  .swk-mouse {
-    position: relative;
-    width: 22px;
-    height: 34px;
-    border: 2px solid currentColor;
-    border-radius: 12px;
+  .swk-hero .swk-chip,
+  .swk-hero .swk-chip:hover,
+  .swk-hero .swk-chip:focus,
+  .swk-hero .swk-chip:visited {
+    color: var(--swk-white);
   }
-  .swk-mouse i {
-    position: absolute;
-    left: 50%;
-    top: 6px;
-    width: 3px;
-    height: 7px;
-    margin-left: -1.5px;
+  .swk-chip-img {
+    display: block;
+    width: 28px;
+    height: 28px;
     border-radius: 2px;
-    background: currentColor;
-    animation: swk-wheel 1.6s ease-in-out infinite;
+    object-fit: cover;
+    filter: var(--swk-avatar-filter);
   }
-  @keyframes swk-wheel {
-    0% {
-      opacity: 0;
-      transform: translateY(0);
-    }
-    30% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-      transform: translateY(10px);
-    }
+  .swk-foot {
+    position: absolute;
+    left: var(--swk-gutter);
+    right: var(--swk-gutter);
+    bottom: var(--swk-bottom);
+  }
+  .swk-hero .swk-title {
+    margin: 0 0 28px;
+    padding: 0;
+    font-size: clamp(28px, 9.2vw, 40px);
+    line-height: 1.25;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+  .swk-t1,
+  .swk-t2 {
+    display: block;
+  }
+  .swk-t1 {
+    color: var(--swk-white);
+  }
+  .swk-t2 {
+    color: var(--swk-muted);
+  }
+  .swk-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .swk-hero .swk-btn {
+    flex: 1 1 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 4px;
+    font-size: 16px;
+    line-height: 1;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .swk-hero .swk-btn--primary,
+  .swk-hero .swk-btn--primary:hover,
+  .swk-hero .swk-btn--primary:focus,
+  .swk-hero .swk-btn--primary:visited {
+    background: var(--swk-accent);
+    color: #ffffff;
+  }
+  .swk-hero .swk-btn--light,
+  .swk-hero .swk-btn--light:hover,
+  .swk-hero .swk-btn--light:focus,
+  .swk-hero .swk-btn--light:visited {
+    background: #ffffff;
+    color: var(--swk-dark);
+  }
+  .swk-hero a:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+  }
+  .swk-ic {
+    flex: none;
+    width: 16px;
+    height: 15px;
+    fill: currentColor; /* สีไอคอน = สีตัวหนังสือของปุ่ม */
   }
   @media (prefers-reduced-motion: reduce) {
     .swk-hero {
       height: 100svh;
     }
-    .swk-hint {
-      display: none;
-    }
   }
 </style>
 
-<noscript><style>.swk-hero{height:auto}.swk-hint{display:none}</style></noscript>
+<noscript><style>.swk-hero{height:auto}</style></noscript>
 
 <section class="swk-hero" aria-label="Hero">
   <div class="swk-stage">
     <canvas class="swk-cv" aria-hidden="true"></canvas>
-    <div class="swk-copy">
-      <h1 class="swk-h1">Your headline here</h1>
-      <p class="swk-sub">One short line that explains what you do.</p>
+
+    <div class="swk-top">
+      <div class="swk-lead">เราออกแบบ พัฒนา และทำ SEO <br class="swk-br" />ให้เว็บไซต์ของแบรนด์ที่ไม่อยากกลืนไปกับคู่แข่ง</div>
+      <a class="swk-chip" href="#contact"><img class="swk-chip-img" src="data:image/webp;base64,UklGRnAEAABXRUJQVlA4IGQEAABwEgCdASo4ADgAPrVOnEonJKKhrhtriOAWiWgAsv9fD+ksw5wL4MP+y3avO56cvApWkmXLv9xC3F5zdr61GpLLKLNU8rWoWdCo6NNPaRXFc+HzgyfiHibQNFt0YnJs0zp+fLGmzKCv+kNOUGJr8RrQL1j0q0W/5BUpVYkgEyh5dKSa2f2cD3l97hHE+5azuuldnPl84ygHzBeZZrAA+UxVi4QBe1+P9H/P81/jbB1WjiUsSgqJ32PcvVqQhODK58NCB+GklbBYtX6Ab86yC33xdy5H3kIFwBe1zp1iIE47cw2IX5bx5ubVUK689/KS9Y62U7XglLk5I5QLRBEeOdLpEpcDmZwK08/VA5JCEacDifbrQCvI8pOCrP82jHf9X/8Z/JVwS5eJPXSvUetncp/13ufWdaJKtumw2NrKpXchMx0atE9ai/pWCuJVj5CGC9w/OiEVPxBc8LJNBLirREf84b4xmKjY82PzHb0vdeAfGQOgGEiUFWAz/JlyCkP4hokWTp7XhrapQ30efC8qJvoCoKNCIIPU4bR/BzlpoBvn0ObqBKrKuHvmY1PS+pPxZ0MXdUl4N0VtCk4Ixx46RLzoIKKA3v4y2rgjCYZbWOAQ/dexAlbJyr1qgVjeEqWAjVwY3BC7kMt4d2lxgwEtsHRUwCyGCpfLxgLLMTHoLn8yp0OxpBv96K2/q3oNHi2zYRtGcIFHiRYqrgSTMkOnJiuSMbB03LlAKgAtHiR7yxAko5ntBxM0iRSWMVceQiMGmDRwPYzWNCo2j5GQ5x1vTTULCpX1lvfYODi7ZvcQlKQPs7oWUY8KsdbObjyHTP0pnf7Bi8LM9gy+74FbhKuP+LS85r2NlZfB4QyWHSUNQVlqi9J8j1U7CX+V3Sh/0kHtT6pqjIrJ0+tzLum11HYkiyqvCtuJDnul/zE1NUgyxOAj0CB1eq+WxvTIu0+y4qT/HiDhKe0wjWalz77M8IedPRooBjOfg+nAe5YVLC5KZY9RhKjf1njV7iaCVrmUiO9sl09LetM5rJS0naWDnIqvX6QOwtH3/ACCqt/zavQKz7DmV4o/MFTD2s43MH90424LaiTOZSqbGbHUuyUcfNCtRpBLqpweFniAsAb9HjLjXDA4o3R1zqAdgJvNzGEIJLGLhOBRT3v+s7uuta35vzijLQ4BgMIWURb1DUiuK4m5InZCPOo3D+rjtPRyyOt1s4PBAk1wJbdb0Vt/Xy8WPVkEys7sdT9WrFWE8/+wqvFeX1TXTOCSEdIQ7tlbmE5JCDdXPUdbxXwh7dxyn44q8Mp+H5PU5sfUxJYwCnWYbt9JsbIP9+Eru0y3SFPebR5MJx72KIA7Y2j3h+Tm/ROHEoVEa5jtG8V1KzGWwQE1eaJiyYcRVHWwK9mXhK21rzdZlxPob/+zB3IRJPanjx2Gydl+BBSgMM5yXUSlofLBhVOH5vz4s3y2DMutrPYnCzY4s+PQ+y9Nm41t1iJOTE1f5MJwHEwHbAAAAA==" width="28" height="28" alt="" /><span>นัดคุย</span></a>
     </div>
-    <a class="swk-cta" href="#contact">Get started</a>
-    <div class="swk-hint" aria-hidden="true"><span class="swk-mouse"><i></i></span><span>Scroll</span></div>
+
+    <div class="swk-foot">
+      <h1 class="swk-title">
+        <span class="swk-t1">รับทำเว็บไซต์ &amp; SEO </span>
+        <span class="swk-t2">ที่ทั้งสวย และติดอันดับ</span>
+      </h1>
+      <div class="swk-actions">
+        <a class="swk-btn swk-btn--primary" href="#contact">เริ่มโปรเจกต์ <svg class="swk-ic" aria-hidden="true" focusable="false"><use href="#swk-arrow"></use></svg></a>
+        <a class="swk-btn swk-btn--light" href="#work">ดูผลงาน <svg class="swk-ic" aria-hidden="true" focusable="false"><use href="#swk-arrow"></use></svg></a>
+      </div>
+    </div>
+
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
+      <symbol id="swk-arrow" viewBox="0 0 16 15"><path d="M7.93408 2.12402C8.00691 2.12406 8.0658 2.18305 8.06592 2.25586V4.2373H10.8394C10.9122 4.23735 10.9712 4.29624 10.9712 4.36914V6.08594H13.7446C13.8175 6.08602 13.8765 6.14489 13.8765 6.21777V8.33105C13.8763 8.40376 13.8174 8.46281 13.7446 8.46289H10.9712V10.1797C10.9711 10.2525 10.9122 10.3115 10.8394 10.3115H8.06592V12.292C8.06592 12.3649 8.007 12.4248 7.93408 12.4248H2.25537C2.18255 12.4247 2.12354 12.3648 2.12354 12.292V10.1797C2.12354 10.1068 2.18255 10.048 2.25537 10.0479H5.02881V8.06641C5.02889 7.9936 5.08785 7.93467 5.16064 7.93457H7.93408V6.61426H5.16064C5.08781 6.61415 5.02881 6.55431 5.02881 6.48145V4.50098H2.25537C2.18259 4.50086 2.12362 4.44193 2.12354 4.36914V2.25586C2.12365 2.1831 2.18261 2.12414 2.25537 2.12402H7.93408Z"></path></symbol>
+    </svg>
   </div>
 </section>
 
@@ -196,15 +237,30 @@
       "#.................................",
       "#................................."
     ];
-    var BG = "#040404";
+
+    /* ค่าปรับแต่ง (สัดส่วนของความกว้าง/ความสูงหน้าจอ) */
+    var BASE = {
+      logoW: 0.58, /* ความกว้างโลโก้ (ในคลิป ~0.56) */
+      logoCx: 0.499, logoCy: 0.509, /* ศูนย์กลางโลโก้ */
+      ringCx: 0.5, ringCy: 0.51, ringRx: 0.5, ringRy: 0.275, /* วงกลมตอนแตกกระจาย */
+      horizon: 0.38, floorBottom: 0.96, rows: 10 /* พื้นกระเบื้อง */
+    };
+    /* ค่าที่ต่างจากมือถือ สำหรับ tablet (>= 768px) และ desktop (>= 1024px) ใส่ทีหลังได้ที่นี่ เช่น { logoW: 0.45 } */
+    var OVERRIDE = { tablet: {}, desktop: {} };
+
     var C_BLUE = [21, 110, 246];
     var C_LIGHT = [94, 158, 255];
     var C_WHITE = [226, 236, 255];
-    var C_GRAY = [26, 32, 46];
-    var LOGO_W = 0.7; /* ความกว้างโลโก้เทียบกับความกว้างจอ */
-    var FLOOR_ROWS = 10;
-    var HORIZON = 0.38;
+    var C_MID_BLUE = [61, 99, 156]; /* สีกระเบื้องช่วงตกกลับ (วัดจากคลิป) */
+    var C_MID_GRAY = [159, 160, 165];
+    var FLOOR_NEAR = [25, 29, 41]; /* สีกระเบื้องพื้น (วัดจากคลิป) */
+    var FLOOR_FAR = [11, 13, 21];
+    var BG = "#040404";
     var TAU = Math.PI * 2;
+    /* ไทม์ไลน์ตามสัดส่วนการ scroll 0..1 : พื้น -> FW (.06-.40) ค้าง (.40-.62) -> วงกลม (.62-.80) -> พื้น (.80-.97) */
+    var FORM_AT = 0.06, FORM_SPREAD = 0.16, FORM_LEN = 0.18;
+    var BURST_AT = 0.62, BURST_SPREAD = 0.06, BURST_LEN = 0.12;
+    var BACK_AT = 0.8, BACK_SPREAD = 0.06, BACK_LEN = 0.11;
 
     function mulberry32(a) {
       return function () {
@@ -240,6 +296,32 @@
       c.height = Math.max(1, Math.ceil(h));
       return c;
     }
+    function grid(m, w, h) {
+      /* แบ่งสี่เหลี่ยม w x h เป็น m ช่องเท่า ๆ ให้แต่ละช่องกว้างกว่าสูงราว 1.9 : 1 เหมือนกระเบื้องโลโก้ */
+      var best = null;
+      if (m === 1) return { gx: 1, gy: 1 };
+      for (var gx = 1; gx <= m; gx++) {
+        if (m % gx) continue;
+        var gy = m / gx;
+        if (gx > w || gy > h) continue;
+        var sc = Math.abs(Math.log(w / gx / (h / gy) / 1.9));
+        if (!best || sc < best.sc) best = { gx: gx, gy: gy, sc: sc };
+      }
+      return best && best.sc < 0.95 ? best : null; /* ไม่ยอมแบ่งเป็นแผ่นบางเกินไป */
+    }
+    function order(list, fx, fy) {
+      /* เรียงตามแนวนอนเป็นแถบ แล้วเรียงบนลงล่างในแถบ เพื่อให้จับคู่กระเบื้อง <-> ช่องโลโก้แล้วเคลื่อนที่ไม่ไขว้กัน */
+      var n = list.length, idx = [], bucket = [], i;
+      for (i = 0; i < n; i++) idx.push(i);
+      idx.sort(function (a, b) {
+        return fx(list[a]) - fx(list[b]) || a - b;
+      });
+      for (i = 0; i < n; i++) bucket[idx[i]] = Math.floor((i * 14) / n);
+      idx.sort(function (a, b) {
+        return bucket[a] - bucket[b] || fy(list[a]) - fy(list[b]) || a - b;
+      });
+      return idx;
+    }
 
     function init(root) {
       var stage = root.querySelector(".swk-stage");
@@ -250,109 +332,169 @@
       root.className += " swk-js";
 
       var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-      var W = 0, H = 0, dpr = 1, S = 1, BW = 9, BH = 4.5, LW = 5, LH = 2.5, LKd = 8, PYd = 4, LWd = 7, LHd = 3;
-      var rows = [], parts = [], sprites = {}, glow = null, ambient = null;
+      var hasRR = typeof ctx.roundRect === "function";
+      var W = 0, H = 0, dpr = 1, cfg = BASE, LW = 5, LH = 2.5;
+      var parts = [], glow = null, ambient = null, ring = { x: 0, y: 0, rx: 1, ry: 1 };
       var cur = reduce ? 0.5 : 0, target = cur, last = 0, raf = 0, visible = true;
-      var lastIn = -1, lastHint = -1, isIn = false;
+      var cr = 0, cg = 0, cb = 0;
 
-      /* ---------- สร้างองค์ประกอบตามขนาดหน้าจอ ---------- */
-      function rr(g, x, y, w, h, r) {
-        g.beginPath();
-        g.moveTo(x + r, y);
-        g.arcTo(x + w, y, x + w, y + h, r);
-        g.arcTo(x + w, y + h, x, y + h, r);
-        g.arcTo(x, y + h, x, y, r);
-        g.arcTo(x, y, x + w, y, r);
-        g.closePath();
+      /* ---------- สร้างอนุภาคตามขนาดหน้าจอ ---------- */
+      function settings(w) {
+        var o = {}, k;
+        for (k in BASE) o[k] = BASE[k];
+        var ov = w >= 1024 ? OVERRIDE.desktop : w >= 768 ? OVERRIDE.tablet : null;
+        if (ov) for (k in ov) o[k] = ov[k];
+        return o;
       }
-      function sprite(rgb, w, h) {
-        var c = mk(w || BW * dpr, h || BH * dpr);
-        var g = c.getContext("2d");
-        g.fillStyle = "rgb(" + rgb.join(",") + ")";
-        rr(g, 0, 0, c.width, c.height, c.height * 0.3);
-        g.fill();
-        return c;
-      }
-      function makeFloor() {
-        var rnd = mulberry32(11);
-        rows = [];
-        for (var k = 0; k < FLOOR_ROWS; k++) {
-          var t = k / (FLOOR_ROWS - 1);
-          var y = H * (HORIZON + (0.96 - HORIZON) * Math.pow(t, 1.7));
-          var yn = H * (HORIZON + (0.96 - HORIZON) * Math.pow(Math.min(1, (k + 1) / (FLOOR_ROWS - 1)), 1.7));
-          var h = Math.max(2, (k === FLOOR_ROWS - 1 ? y - rows[k - 1].y : yn - y) * 0.5);
-          var tw = W * (0.035 + 0.085 * Math.pow(t, 1.3));
-          var tiles = [], x = 0;
-          while (x < W * 1.3) {
-            var w = tw * (0.6 + rnd() * 1.2);
-            tiles.push({ x: x, w: w });
-            x += w + tw * (0.25 + rnd() * 0.25);
-          }
-          rows.push({
-            k: k, y: y, h: h, tw: tw, tiles: tiles, L: x,
-            a: 0.12 + 0.6 * Math.pow(t, 0.7),
-            dir: k % 2 ? 1 : -1,
-            sp: 0.1 + 0.25 * t
-          });
-        }
-      }
-      function makeParticles() {
-        var rnd = mulberry32(20241108);
+      function makeLogo() {
         var cols = LOGO[0].length, nr = LOGO.length;
-        var px = LKd / dpr, py = PYd / dpr;
-        var lxd = Math.round(W * 0.499 * dpr - (cols * LKd) / 2), lyd = Math.round(H * 0.509 * dpr - (nr * PYd) / 2);
-        var lx = lxd / dpr, ly = lyd / dpr;
-        parts = [];
-        function gauss() {
-          return (rnd() + rnd() + rnd() - 1.5) / 1.5;
-        }
-        function make(hx, hy, light, dust) {
-          var ang = rnd() * TAU, m = 0.82 + rnd() * 0.3;
-          var row = rows[Math.min(FLOOR_ROWS - 1, Math.floor(Math.pow(rnd(), 0.6) * FLOOR_ROWS))];
-          var q = {
-            ax: W * (0.05 + rnd() * 0.9), ay: H * (0.4 + rnd() * 0.42),
-            bx: W * 0.5 + gauss() * W * 0.14, by: H * 0.475 + gauss() * H * 0.07,
-            hx: hx, hy: hy,
-            dx: W * 0.5 + Math.cos(ang) * W * 0.5 * m + gauss() * W * 0.03,
-            dy: H * 0.51 + Math.sin(ang) * H * 0.275 * m + gauss() * H * 0.02,
-            ex: W * rnd(), ey: row.y + row.h / 2,
-            fw: row.tw * (0.5 + rnd() * 0.4), fh: row.h * 0.9,
-            sz: 0.55 + rnd() * 0.95,
-            rot: (rnd() - 0.5) * 0.7, rot2: (rnd() - 0.5) * 3.2,
-            curve: (rnd() - 0.5) * W * 0.3,
-            d1: rnd(), d2: rnd(),
-            light: light, dust: dust, white: rnd() < 0.28
-          };
-          if (dust) {
-            q.hx = q.bx; q.hy = q.by;
-          }
-          parts.push(q);
-        }
+        /* ปัดขนาดกระเบื้องเป็นพิกเซลจริงของจอ เพื่อให้โลโก้คม */
+        var kd = Math.max(2, Math.round((W * cfg.logoW * dpr) / cols));
+        var pyd = Math.max(2, Math.round(kd * 0.538));
+        var lwd = kd - Math.max(1, Math.round(kd * 0.143));
+        var lhd = pyd - Math.max(1, Math.round(pyd * 0.174));
+        var lxd = Math.round(W * cfg.logoCx * dpr - (cols * kd) / 2);
+        var lyd = Math.round(H * cfg.logoCy * dpr - (nr * pyd) / 2);
+        var cells = [];
+        LW = lwd / dpr;
+        LH = lhd / dpr;
         for (var r = 0; r < nr; r++) {
           for (var c = 0; c < cols; c++) {
             var ch = LOGO[r].charAt(c);
-            if (ch !== ".") make((lxd + c * LKd + LWd / 2) / dpr, (lyd + r * PYd + LHd / 2) / dpr, ch === "+", false);
+            if (ch !== ".") cells.push({ x: (lxd + c * kd + lwd / 2) / dpr, y: (lyd + r * pyd + lhd / 2) / dpr, light: ch === "+" });
           }
         }
-        var dust = Math.round(parts.length * 0.12);
-        for (var i = 0; i < dust; i++) make(0, 0, false, true);
+        return { cells: cells, x: lxd / dpr, y: lyd / dpr, w: (cols * kd) / dpr, h: (nr * pyd) / dpr };
+      }
+      function makeFloor(rnd) {
+        var tiles = [], R = cfg.rows, prevY = 0;
+        for (var k = 0; k < R; k++) {
+          var t = k / (R - 1);
+          var y = H * (cfg.horizon + (cfg.floorBottom - cfg.horizon) * Math.pow(t, 1.7));
+          var yn = H * (cfg.horizon + (cfg.floorBottom - cfg.horizon) * Math.pow(Math.min(1, (k + 1) / (R - 1)), 1.7));
+          var h = Math.max(2, (k === R - 1 ? y - prevY : yn - y) * 0.5);
+          var tw = W * (0.035 + 0.085 * Math.pow(t, 1.3));
+          var dd = Math.round((k % 2 ? 1 : -1) * (0.1 + 0.25 * t) * W * 0.04 * dpr) / dpr; /* ระยะที่แถวไหลเบา ๆ ตอนเริ่ม scroll */
+          var x = -rnd() * tw * 2;
+          prevY = y;
+          while (x < W + tw) {
+            var w = tw * (0.6 + rnd() * 1.2);
+            var v = 0.75 + rnd() * 0.4, f = Math.pow(t, 0.9);
+            if (x + w > 0) {
+              tiles.push({
+                X: Math.round(x * dpr), Y: Math.round(y * dpr),
+                Wd: Math.max(3, Math.round(w * dpr)), Hd: Math.max(2, Math.round(h * dpr)),
+                col: [0, 1, 2].map(function (i) { return Math.round(lerp(FLOOR_FAR[i], FLOOR_NEAR[i], f) * v); }),
+                dd: dd
+              });
+            }
+            x += w + tw * (0.5 + rnd() * 0.5);
+          }
+        }
+        return tiles;
+      }
+      function makeParticles(tiles, logo, rnd) {
+        var N = logo.cells.length, i, j, wsum = 0, tot = 0, guard = 0, q, t;
+        /* แต่ละกระเบื้องแตกเป็นหลายช่องเล็ก (ใหญ่ = เยอะ) รวมกันได้เท่ากับจำนวนช่องของโลโก้พอดี */
+        for (i = 0; i < tiles.length; i++) {
+          t = tiles[i];
+          t.wt = Math.pow(t.Wd * t.Hd, 0.55);
+          wsum += t.wt;
+        }
+        for (i = 0; i < tiles.length; i++) {
+          t = tiles[i];
+          t.m = 1;
+          for (j = Math.max(1, Math.round((t.wt / wsum) * N)); j > 1; j--) {
+            if (grid(j, t.Wd, t.Hd)) {
+              t.m = j;
+              break;
+            }
+          }
+          tot += t.m;
+        }
+        while (tot !== N && guard++ < 20000) {
+          var pick = null, score = 0, sc;
+          for (i = 0; i < tiles.length; i++) {
+            t = tiles[i];
+            if (tot < N) {
+              sc = t.wt / t.m;
+              if ((pick === null || sc > score) && grid(t.m + 1, t.Wd, t.Hd)) {
+                pick = t;
+                score = sc;
+              }
+            } else if (t.m > 1) {
+              sc = t.m / t.wt;
+              if ((pick === null || sc > score) && grid(t.m - 1, t.Wd, t.Hd)) {
+                pick = t;
+                score = sc;
+              }
+            }
+          }
+          if (!pick) break;
+          pick.m += tot < N ? 1 : -1;
+          tot += tot < N ? 1 : -1;
+        }
+        var kids = [];
+        for (i = 0; i < tiles.length; i++) {
+          t = tiles[i];
+          var g = grid(t.m, t.Wd, t.Hd) || { gx: 1, gy: 1 };
+          for (var ix = 0; ix < g.gx; ix++) {
+            for (var iy = 0; iy < g.gy; iy++) {
+              var x0 = t.X + Math.floor((ix * t.Wd) / g.gx), x1 = t.X + Math.floor(((ix + 1) * t.Wd) / g.gx);
+              var y0 = t.Y + Math.floor((iy * t.Hd) / g.gy), y1 = t.Y + Math.floor(((iy + 1) * t.Hd) / g.gy);
+              kids.push({ x: (x0 + x1) / 2 / dpr, y: (y0 + y1) / 2 / dpr, w: (x1 - x0) / dpr, h: (y1 - y0) / dpr, col: t.col, dd: t.dd });
+            }
+          }
+        }
+        N = Math.min(N, kids.length);
+        var ko = order(kids, function (c) { return c.x; }, function (c) { return c.y; });
+        var co = order(logo.cells, function (c) { return c.x; }, function (c) { return c.y; });
+        function gauss() {
+          return (rnd() + rnd() + rnd() - 1.5) / 1.5;
+        }
+        parts = [];
+        for (i = 0; i < N; i++) {
+          var kid = kids[ko[i]], cell = logo.cells[co[i]];
+          var fc = cell.light ? C_LIGHT : C_BLUE, white = rnd() < 0.3;
+          var mx = (kid.x + kid.dd + cell.x) / 2, my = (kid.y + cell.y) / 2;
+          q = {
+            fx: kid.x, fy: kid.y, fw: kid.w, fh: kid.h, F: kid.col, dd: kid.dd,
+            hx: cell.x, hy: cell.y, fc: fc,
+            /* จุดควบคุมเส้นโค้งตอนกระเบื้องลอยขึ้นมารวมกันที่กลางจอก่อนเรียงเป็น FW */
+            cx: W * 0.5 + (mx - W * 0.5) * 0.55 + gauss() * W * 0.05,
+            cy: Math.min(my, H * 0.5) - H * (0.03 + 0.07 * rnd()),
+            s1: FORM_AT + rnd() * FORM_SPREAD, s2: BURST_AT + rnd() * BURST_SPREAD, s3: BACK_AT + rnd() * BACK_SPREAD,
+            tilt: (rnd() - 0.5) * 0.6, rr: (rnd() - 0.5) * 3.2, spin: (rnd() - 0.5) * 1.2,
+            rs: 0.7 + 1.3 * rnd() * rnd(), dim: rnd() < 0.4 ? 0.45 : 1, rm: 0.85 + 0.25 * rnd(), ang: 0,
+            mc: white ? C_MID_GRAY : C_MID_BLUE, ky: kid.y
+          };
+          q.rc = white ? C_WHITE : fc;
+          if (q.dim < 1) q.rc = [q.rc[0] * q.dim, q.rc[1] * q.dim, q.rc[2] * q.dim]; /* เศษบางส่วนหรี่ลง ให้วงกลมดูบางเหมือนในคลิป */
+          q.a0 = Math.atan2((cell.y - H * cfg.ringCy) / (H * cfg.ringRy), (cell.x - W * cfg.ringCx) / (W * cfg.ringRx));
+          parts.push(q);
+        }
+        /* กระจายมุมบนวงกลมให้สม่ำเสมอ โดยเรียงตามทิศที่ช่องนั้นอยู่ในโลโก้ เศษจึงพุ่งออกในทิศใกล้เคียงกับที่เคยอยู่ */
+        var byA = parts.slice().sort(function (a, b) { return a.a0 - b.a0; });
+        for (i = 0; i < byA.length; i++) byA[i].ang = ((i + rnd() * 0.8) / byA.length) * TAU - Math.PI;
+        parts.sort(function (a, b) { return a.ky - b.ky; }); /* วาดแถวไกลก่อน แถวใกล้ทับ */
+        ring = { x: W * cfg.ringCx, y: H * cfg.ringCy, rx: W * cfg.ringRx, ry: H * cfg.ringRy };
+
         /* glow: วาดโลโก้ย่อ 1/8 แล้วขยายซ้ำเป็นขั้น ๆ = เบลอโดยไม่ใช้ ctx.filter (Safari ใช้ได้) */
-        var pad = 44 * S, gw = cols * px + pad * 2, gh = nr * py + pad * 2;
+        var pad = 44 * (W / 780), gw = logo.w + pad * 2, gh = logo.h + pad * 2;
         var c1 = mk(gw / 8, gh / 8), g1 = c1.getContext("2d");
         g1.fillStyle = "rgb(70,150,255)";
-        for (var j = 0; j < parts.length; j++) {
-          var p = parts[j];
-          if (p.dust) continue;
-          g1.fillRect((p.hx - (lx - pad) - LW / 2) / 8, (p.hy - (ly - pad) - LH / 2) / 8, LW / 8, LH / 8);
+        for (i = 0; i < logo.cells.length; i++) {
+          var lc = logo.cells[i];
+          g1.fillRect((lc.x - (logo.x - pad) - LW / 2) / 8, (lc.y - (logo.y - pad) - LH / 2) / 8, LW / 8, LH / 8);
         }
         var c2 = mk(gw / 4, gh / 4);
         c2.getContext("2d").drawImage(c1, 0, 0, c2.width, c2.height);
         var c3 = mk(gw / 2, gh / 2);
         c3.getContext("2d").drawImage(c2, 0, 0, c3.width, c3.height);
-        glow = { c1: c1, c3: c3, x: lx - pad, y: ly - pad, w: gw, h: gh };
+        glow = { c1: c1, c3: c3, x: logo.x - pad, y: logo.y - pad, w: gw, h: gh, pad: pad };
         ambient = ctx.createRadialGradient(W * 0.5, H * 0.51, 0, W * 0.5, H * 0.51, W * 0.75);
-        ambient.addColorStop(0, "rgba(31,108,240,0.22)");
-        ambient.addColorStop(1, "rgba(31,108,240,0)");
+        ambient.addColorStop(0, "rgba(21,110,246,0.22)");
+        ambient.addColorStop(1, "rgba(21,110,246,0)");
       }
       function build() {
         var r = stage.getBoundingClientRect();
@@ -362,48 +504,37 @@
         dpr = Math.min(window.devicePixelRatio || 1, 2);
         cv.width = Math.round(W * dpr);
         cv.height = Math.round(H * dpr);
-        S = W / 780;
-        BW = 18 * S;
-        BH = 9 * S;
-        /* ขนาดกระเบื้องโลโก้ ปัดเป็นพิกเซลจริงของจอ เพื่อให้คมตอนค้างโลโก้ */
-        LKd = Math.max(2, Math.round((W * LOGO_W * dpr) / LOGO[0].length));
-        PYd = Math.max(2, Math.round(LKd * 0.538));
-        LWd = LKd - Math.max(1, Math.round(LKd * 0.143));
-        LHd = PYd - Math.max(1, Math.round(PYd * 0.174));
-        LW = LWd / dpr;
-        LH = LHd / dpr;
-        sprites = {
-          blue: sprite(C_BLUE), light: sprite(C_LIGHT), white: sprite(C_WHITE), gray: sprite(C_GRAY),
-          lblue: sprite(C_BLUE, LWd, LHd), llight: sprite(C_LIGHT, LWd, LHd)
-        };
-        makeFloor();
-        makeParticles();
+        cfg = settings(W);
+        var rnd = mulberry32(20241108);
+        makeParticles(makeFloor(rnd), makeLogo(), rnd);
         return true;
       }
 
       /* ---------- วาด ---------- */
-      function drawFloor(p) {
-        var b = seg(p, 0.76, 0.86) * (1 - seg(p, 0.86, 0.97));
-        var dim = 1 - 0.6 * sm(0.3, 0.44, p) * (1 - sm(0.64, 0.72, p));
-        for (var i = 0; i < rows.length; i++) {
-          var r = rows[i];
-          ctx.fillStyle = "rgba(" + C_GRAY.join(",") + "," + Math.min(1, r.a * dim * (1 + 0.9 * b)).toFixed(3) + ")";
-          var off = r.dir * r.sp * p * W;
-          var base = -(((off % r.L) + r.L) % r.L);
-          for (var s = base - r.L; s < W; s += r.L) {
-            for (var j = 0; j < r.tiles.length; j++) {
-              var t = r.tiles[j], x = s + t.x;
-              if (x >= W) break;
-              if (x + t.w < 0) continue;
-              ctx.fillRect(x, r.y + (b > 0 ? Math.sin(x * 0.07 + r.k) * r.h * 0.6 * b : 0), t.w, r.h);
-            }
-          }
+      function mix(a, b, t) {
+        cr = (a[0] + (b[0] - a[0]) * t + 0.5) | 0;
+        cg = (a[1] + (b[1] - a[1]) * t + 0.5) | 0;
+        cb = (a[2] + (b[2] - a[2]) * t + 0.5) | 0;
+      }
+      function put(x, y, w, h, rot, rad) {
+        ctx.fillStyle = "rgb(" + cr + "," + cg + "," + cb + ")";
+        if (rot !== 0) {
+          var c = Math.cos(rot) * dpr, s = Math.sin(rot) * dpr;
+          ctx.setTransform(c, s, -s, c, x * dpr, y * dpr);
+          ctx.fillRect(-w / 2, -h / 2, w, h);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        } else if (hasRR && rad * dpr >= 1) {
+          ctx.beginPath();
+          ctx.roundRect(x - w / 2, y - h / 2, w, h, rad);
+          ctx.fill();
+        } else {
+          ctx.fillRect(x - w / 2, y - h / 2, w, h);
         }
       }
       function drawGlow(p) {
-        var form = sm(0.3, 0.44, p) * (1 - sm(0.64, 0.72, p));
+        var form = sm(0.3, 0.42, p) * (1 - sm(0.62, 0.7, p));
         if (form <= 0.01) return;
-        var pulse = 0.85 + 0.15 * Math.sin(p * 42);
+        var pulse = 0.85 + 0.15 * Math.sin(p * 42), S = W / 780;
         ctx.globalCompositeOperation = "lighter";
         ctx.globalAlpha = form * 0.5;
         ctx.fillStyle = ambient;
@@ -415,77 +546,62 @@
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = "source-over";
       }
-      function put(img, x, y, w, h, rot, a) {
-        if (a <= 0.01) return;
-        var c = Math.cos(rot) * dpr, s = Math.sin(rot) * dpr;
-        ctx.setTransform(c, s, -s, c, x * dpr, y * dpr);
-        ctx.globalAlpha = a > 1 ? 1 : a;
-        ctx.drawImage(img, -w / 2, -h / 2, w, h);
-      }
       function drawParts(p) {
-        var tw = BW, th = BH, kl = LW / BW;
+        var drift = seg(p, 0, FORM_AT);
         for (var i = 0; i < parts.length; i++) {
-          var q = parts[i];
-          var g = seg(p, 0.06 + q.d1 * 0.06, 0.26 + q.d1 * 0.04);
-          var f = seg(p, 0.24 + q.d2 * 0.08, 0.42);
-          var xp = seg(p, 0.66 + q.d1 * 0.04, 0.78);
-          var s = seg(p, 0.78 + q.d2 * 0.06, 0.94);
-          var x, y, rot, k, a, e, w, h;
-          a = sm(0, 0.6, g);
-          if (a <= 0 && f <= 0) continue;
-          if (f <= 0) {
-            e = eio(g);
-            x = lerp(q.ax, q.bx, e);
-            y = lerp(q.ay, q.by, e);
-            x += Math.sin(Math.PI * e) * q.curve;
-            rot = q.rot * 2;
-            k = 0.5 + 0.3 * g;
-            a *= 0.45;
-          } else if (xp <= 0) {
-            e = eio(f);
-            x = lerp(q.bx, q.hx, e) + Math.sin(Math.PI * e) * q.curve * 0.5;
-            y = lerp(q.by, q.hy, e);
-            rot = q.rot * 2 * (1 - e);
-            k = lerp(0.8, kl, e);
-            a = lerp(0.45, 1, e);
-            if (q.dust) a *= 1 - e;
-            else if (f >= 1) {
-              put(q.light ? sprites.llight : sprites.lblue, x, y, LW, LH, 0, 1);
-              continue;
-            }
-          } else if (s <= 0) {
-            e = eo(xp);
-            x = lerp(q.hx, q.dx, e);
-            y = lerp(q.hy, q.dy, e);
-            rot = q.rot2 * e;
-            k = lerp(kl, q.sz, e);
-            a = q.dust ? sm(0, 0.25, xp) : 1;
-          } else {
-            e = eio(s);
-            x = lerp(q.dx, q.ex, e);
-            y = lerp(q.dy, q.ey, e);
-            rot = q.rot2 * (1 - e);
-            k = lerp(q.sz, 1, e);
-            a = 1 - sm(0.25, 0.8, s);
-          }
-          w = tw * k;
-          h = th * k;
+          var q = parts[i], x, y, w, h, rot = 0, e, a;
+          var s = seg(p, q.s3, q.s3 + BACK_LEN);
           if (s > 0) {
+            /* วงกลม -> กลับเป็นกระเบื้องเดิมของตัวเอง (ขยายใหญ่ผ่านสีน้ำเงิน/เทาแล้วหรี่ลงเป็นสีพื้น) */
             e = eio(s);
-            e = e * e;
-            w = lerp(tw * q.sz, q.fw, e);
-            h = lerp(th * q.sz, q.fh, e);
+            a = q.ang + (p - BURST_AT) * 0.5;
+            x = lerp(ring.x + Math.cos(a) * ring.rx * q.rm, q.fx + q.dd, e);
+            y = lerp(ring.y + Math.sin(a) * ring.ry * q.rm, q.fy, e);
+            a = 1 + 0.4 * Math.sin(Math.PI * e);
+            w = lerp(LW * q.rs, q.fw, e) * a;
+            h = lerp(LH * q.rs, q.fh, e) * a;
+            rot = (q.rr + (p - BURST_AT) * q.spin) * (1 - e);
+            if (e < 0.5) mix(q.rc, q.mc, e * 2);
+            else mix(q.mc, q.F, (e - 0.5) * 2);
+            put(x, y, w, h, rot, Math.min(h * 0.3, 3) * (1 - sm(0.6, 1, e)));
+            continue;
           }
-          var mw = q.white ? sm(0.2, 0.6, xp) * (1 - sm(0.1, 0.8, s)) : 0;
-          var mg = sm(0.2, 0.9, s);
-          var base = q.light ? sprites.light : sprites.blue;
-          var top = Math.max(mw, mg);
-          put(base, x, y, w, h, rot, a * (1 - top));
-          if (mw > 0.01) put(sprites.white, x, y, w, h, rot, a * mw);
-          if (mg > 0.01) put(sprites.gray, x, y, w, h, rot, a * mg);
+          var v = seg(p, q.s2, q.s2 + BURST_LEN);
+          if (v > 0) {
+            /* โลโก้ FW -> แตกกระจายเป็นวงกลม */
+            e = eo(v);
+            a = q.ang + (p - BURST_AT) * 0.5;
+            x = lerp(q.hx, ring.x + Math.cos(a) * ring.rx * q.rm, e);
+            y = lerp(q.hy, ring.y + Math.sin(a) * ring.ry * q.rm, e);
+            w = lerp(LW, LW * q.rs, e);
+            h = lerp(LH, LH * q.rs, e);
+            rot = (q.rr + (p - BURST_AT) * q.spin) * e;
+            mix(q.fc, q.rc, e);
+            put(x, y, w, h, rot, Math.min(h * 0.3, 3));
+            continue;
+          }
+          var u = seg(p, q.s1, q.s1 + FORM_LEN);
+          if (u <= 0) {
+            /* กระเบื้องพื้น (ไหลเบา ๆ ตอนเริ่ม scroll) */
+            mix(q.F, q.F, 0);
+            put(q.fx + q.dd * drift, q.fy, q.fw, q.fh, 0, 0);
+          } else if (u < 1) {
+            /* กระเบื้องลอยขึ้น รวมกลางจอ แล้วเรียงเป็นช่องของโลโก้ */
+            e = eio(u);
+            a = 1 - e;
+            x = a * a * (q.fx + q.dd) + 2 * a * e * q.cx + e * e * q.hx;
+            y = a * a * q.fy + 2 * a * e * q.cy + e * e * q.hy;
+            a = sm(0, 0.45, u); /* ย่อเป็นก้อนเล็กเท่าช่องโลโก้ตั้งแต่ช่วงแรก */
+            w = lerp(q.fw, LW, a);
+            h = lerp(q.fh, LH, a);
+            rot = q.tilt * Math.sin(Math.PI * e);
+            mix(q.F, q.fc, sm(0, 0.7, u));
+            put(x, y, w, h, rot, Math.min(h * 0.3, 3) * sm(0, 0.15, u));
+          } else {
+            mix(q.fc, q.fc, 0);
+            put(q.hx, q.hy, LW, LH, 0, Math.min(LH * 0.3, 3));
+          }
         }
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        ctx.globalAlpha = 1;
       }
       function render(p) {
         if (!W) return;
@@ -494,24 +610,8 @@
         ctx.globalCompositeOperation = "source-over";
         ctx.fillStyle = BG;
         ctx.fillRect(0, 0, W, H);
-        drawFloor(p);
         drawGlow(p);
         drawParts(p);
-        var vIn = reduce ? 1 : Math.round(sm(0.3, 0.44, p) * 100) / 100;
-        var vHint = Math.round((1 - sm(0, 0.04, p)) * 100) / 100;
-        if (vIn !== lastIn) {
-          lastIn = vIn;
-          root.style.setProperty("--swk-in", vIn);
-          var on = vIn > 0.6;
-          if (on !== isIn) {
-            isIn = on;
-            root.className = on ? root.className + " swk-in" : root.className.replace(" swk-in", "");
-          }
-        }
-        if (vHint !== lastHint) {
-          lastHint = vHint;
-          root.style.setProperty("--swk-hint", vHint);
-        }
       }
 
       /* ---------- scroll -> ความคืบหน้า 0..1 (หน่วงนุ่ม ๆ) ---------- */
