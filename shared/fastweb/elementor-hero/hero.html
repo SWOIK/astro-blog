@@ -163,7 +163,7 @@
     fill: currentColor; /* สีไอคอน = สีตัวหนังสือของปุ่ม */
   }
 
-  /* แท็บเล็ต (768-1023px): ใช้องค์ประกอบแบบมือถือ ขยายตัวอักษรและระยะห่าง */
+  /* แท็บเล็ต (768-1023px): ข้อความขยายจากมือถือ ปุ่มขนาดเท่าเดสก์ท็อปและชิดซ้าย */
   @media (min-width: 768px) and (max-width: 1023px) {
     .swk-hero {
       --swk-gutter: 48px;
@@ -183,12 +183,12 @@
       margin-bottom: 36px;
     }
     .swk-actions {
-      max-width: 560px;
       gap: 12px;
     }
     .swk-hero .swk-btn {
-      min-height: 52px;
-      font-size: 16px;
+      flex: none;
+      padding: 0 24px;
+      font-size: 14px;
     }
   }
 
@@ -323,7 +323,7 @@
         ui: false, cover: false, total: 5.6, still: 0.5, unit: 1,
         logoW: 0.58, logoCx: 0.499, logoCy: 0.509, cloud: [0.5, 0.5],
         ring: [0.5, 0.51, 0.5, 0.275], rm: [0.85, 0.25], rs: [0.7, 1.3], dimP: 0.4,
-        floor: { horizon: 0.38, bottom: 0.96, rows: 10, py: 1.7, pw: 1.3, tw0: 0.035, tw1: 0.12, g0: 0.5, g1: 0.5, v0: 0.75, v1: 0.4, h: 0.5, drift: 0.04, far: [11, 13, 21], near: [25, 29, 41] },
+        floor: { horizon: 0.38, bottom: 0.96, rows: 10, py: 1.7, pw: 1.3, tw0: 0.035, tw1: 0.12, g0: 0.5, g1: 0.5, w0: 0.6, w1: 1.2, v0: 0.75, v1: 0.4, vp: 1, h: 0.5, drift: 0.04, jx: 0.05, jy: 0.12, wv: [0.12, 1.1], far: [11, 13, 21], near: [25, 29, 41], mask: null },
         win: { form: [0.06, 0.16, 0.18], burst: [0.62, 0.06, 0.12], back: [0.8, 0.06, 0.11] },
         glow: [0.3, 0.42, 0.62, 0.7]
       },
@@ -331,11 +331,25 @@
         ui: true, cover: true, total: 13, still: 2.8 / 13, unit: 13,
         logoW: 0.3115, logoCx: 0.7094, logoCy: 0.643, cloud: [0.66, 0.5],
         ring: [0.651, 0.5185, 0.427, 0.48], rm: [0.38, 0.62], rs: [0.5, 0.9], dimP: 0.6,
-        floor: { horizon: 0.4, bottom: 0.965, rows: 13, py: 1.6, pw: 1.2, tw0: 0.012, tw1: 0.07, g0: 0.12, g1: 0.18, v0: 0.7, v1: 1.0, h: 0.6, drift: 0.02, far: [10, 11, 18], near: [18, 22, 32] },
+        /* พื้น: ระนาบเอียง 10 แถว กระเบื้องกว้างเท่ากันในแถว เยื้องขึ้นลง/ซ้ายขวาไม่เป๊ะ มุมโค้ง (วัดจากรูปอ้างอิง) ชิ้นสว่างโดดมีส่วนน้อย (vp) mask = จางหายด้านบน/ซ้าย/ขอบขวา ให้กระเบื้องเด่นที่ขวาล่าง */
+        floor: { horizon: 0.338, bottom: 0.968, rows: 10, py: 1.9, pw: 1.5, tw0: 0.028, tw1: 0.067, g0: 0.14, g1: 0.1, w0: 0.92, w1: 0.16, v0: 0.55, v1: 1.4, vp: 2.2, th0: 0.0167, th1: 0.06, ph: 0.7, drift: 0.02, jx: 0.03, jy: 0.2, wv: [0.25, 1.2], far: [13, 15, 22], near: [23, 27, 38], mask: { top: [0.3, 0.4], left: [0.18, 0.62, 0.12], right: [0.85, 1, 0.3] } },
         win: { form: [0.9, 0.5, 0.9], burst: [3.15, 0.15, 0.35], conv: [3.95, 0.25, 0.5], emerge: [11.3, 0.2, 0.4], back: [12, 0.1, 0.25] },
         glow: [1.8, 2.4, 3.2, 3.5]
       }
     };
+
+    function ext(a, b) {
+      var o = {}, k;
+      for (k in a) o[k] = a[k];
+      for (k in b) o[k] = b[k];
+      return o;
+    }
+    /* แท็บเล็ต: องค์ประกอบแบบมือถือ แต่โลโก้เล็กลงและเยื้องไปขวา ไม่ทับข้อความ ส่วนกระเบื้อง/วงกลมทับข้อความได้ โดยพื้นจะหรี่มืดตรงบล็อกหัวข้อ+ปุ่ม */
+    LAYOUTS.tablet = ext(LAYOUTS.mobile, {
+      logoW: 0.4, logoCx: 0.66, logoCy: 0.47, cloud: [0.6, 0.5],
+      ring: [0.6, 0.5, 0.5, 0.27],
+      floor: ext(LAYOUTS.mobile.floor, { mask: { top: [0.38, 0.5], zone: [0, 0.88, 0.64, 1, 0.72, 0.07] } })
+    });
 
     var C_BLUE = [21, 110, 246];
     var C_LIGHT = [94, 158, 255];
@@ -433,7 +447,7 @@
       var DW = 0, DH = 0, sc = 1, ox = 0, oy = 0, GS = 1; /* พื้นที่ดีไซน์ -> พิกเซลของ stage */
       var WF = [0, 0, 0], WB = [0, 0, 0], WC = [0, 0, 0], WE = [0, 0, 0], WK = [0, 0, 0]; /* ช่วงเวลาของแต่ละเฟส (หน่วยสัดส่วน scroll) */
       var GL = [0, 0, 0, 0];
-      var parts = [], glow = null, ambient = null, ring = { x: 0, y: 0, rx: 1, ry: 1 };
+      var parts = [], floorTiles = [], glow = null, ambient = null, ring = { x: 0, y: 0, rx: 1, ry: 1 };
       var cur = 0, target = 0, last = 0, raf = 0, visible = true;
       var cr = 0, cg = 0, cb = 0, AL = 1;
 
@@ -466,26 +480,43 @@
         }
         return { cells: cells, x: lxd / dpr, y: lyd / dpr, w: (cols * kd) / dpr, h: (nr * pyd) / dpr };
       }
+      function fmask(xn, yn) {
+        var m = cfg.floor.mask, v = 1, z, e;
+        if (!m) return 1;
+        if (m.top) v *= sm(m.top[0], m.top[1], yn);
+        if (m.left) v *= m.left[2] + (1 - m.left[2]) * sm(m.left[0], m.left[1], xn);
+        if (m.right) v *= 1 - m.right[2] * sm(m.right[0], m.right[1], xn);
+        if (m.zone) {
+          z = m.zone;
+          e = z[5];
+          v *= 1 - z[4] * sm(z[0] - e, z[0], xn) * (1 - sm(z[1], z[1] + e, xn)) * sm(z[2] - e, z[2], yn) * (1 - sm(z[3], z[3] + e, yn));
+        }
+        return v;
+      }
       function makeFloor(rnd) {
-        var tiles = [], f = cfg.floor, R = f.rows, prevY = 0;
+        var tiles = [], f = cfg.floor, R = f.rows, prevY = 0, bgv = 4, th = f.th0 !== undefined;
         for (var k = 0; k < R; k++) {
           var t = k / (R - 1);
           var y = Y(f.horizon + (f.bottom - f.horizon) * Math.pow(t, f.py));
           var yn = Y(f.horizon + (f.bottom - f.horizon) * Math.pow(Math.min(1, (k + 1) / (R - 1)), f.py));
-          var h = Math.max(2, (k === R - 1 ? y - prevY : yn - y) * f.h);
+          var h = th ? SY(f.th0 + (f.th1 - f.th0) * Math.pow(t, f.ph)) : Math.max(2, (k === R - 1 ? y - prevY : yn - y) * f.h);
           var tw = SX(f.tw0 + (f.tw1 - f.tw0) * Math.pow(t, f.pw));
           var dd = Math.round((k % 2 ? 1 : -1) * (0.1 + 0.25 * t) * SX(f.drift) * dpr) / dpr; /* ระยะที่แถวไหลเบา ๆ ตอนเริ่ม scroll */
-          var x = -rnd() * tw * 2;
+          var x = -rnd() * tw * 2, ph0 = rnd() * TAU;
           prevY = y;
           while (x < W + tw) {
-            var w = tw * (0.6 + rnd() * 1.2);
-            var v = f.v0 + rnd() * f.v1, fr = Math.pow(t, 0.9);
-            if (x + w > 0) {
+            var w = tw * (f.w0 + rnd() * f.w1);
+            var v = f.v0 + Math.pow(rnd(), f.vp) * f.v1, fr = Math.pow(t, 0.9);
+            var jx = (rnd() - 0.5) * 2 * f.jx * tw, jy = (rnd() - 0.5) * 2 * f.jy * h;
+            var wy = f.wv[0] * h * Math.sin((x / W) * TAU * f.wv[1] + ph0); /* แถวคดเป็นคลื่นเบา ๆ */
+            var tx = x + jx, ty = (th ? y - h / 2 : y) + jy + wy;
+            if (tx + w > 0) {
+              var mk2 = fmask((tx + w / 2) / W, (ty + h / 2) / H);
+              var col = [0, 1, 2].map(function (i) { return Math.max(0, Math.min(255, Math.round(bgv + (lerp(f.far[i], f.near[i], fr) * v - bgv) * mk2))); });
               tiles.push({
-                X: Math.round(x * dpr), Y: Math.round(y * dpr),
+                X: Math.round(tx * dpr), Y: Math.round(ty * dpr),
                 Wd: Math.max(3, Math.round(w * dpr)), Hd: Math.max(2, Math.round(h * dpr)),
-                col: [0, 1, 2].map(function (i) { return Math.min(255, Math.round(lerp(f.far[i], f.near[i], fr) * v)); }),
-                dd: dd
+                col: col, css: "rgb(" + col.join(",") + ")", dd: dd, t0: 2, t1: -1
               });
             }
             x += w + tw * (f.g0 + rnd() * f.g1);
@@ -548,11 +579,12 @@
             for (var iy = 0; iy < g.gy; iy++) {
               var x0 = t.X + Math.floor((ix * t.Wd) / g.gx), x1 = t.X + Math.floor(((ix + 1) * t.Wd) / g.gx);
               var y0 = t.Y + Math.floor((iy * t.Hd) / g.gy), y1 = t.Y + Math.floor(((iy + 1) * t.Hd) / g.gy);
-              kids.push({ x: (x0 + x1) / 2 / dpr, y: (y0 + y1) / 2 / dpr, w: (x1 - x0) / dpr, h: (y1 - y0) / dpr, col: t.col, dd: t.dd });
+              kids.push({ x: (x0 + x1) / 2 / dpr, y: (y0 + y1) / 2 / dpr, w: (x1 - x0) / dpr, h: (y1 - y0) / dpr, col: t.col, dd: t.dd, ti: i });
             }
           }
         }
         N = Math.min(N, kids.length);
+        floorTiles = tiles;
         var ko = order(kids, function (c) { return c.x; }, function (c) { return c.y; });
         var co = order(logo.cells, function (c) { return c.x; }, function (c) { return c.y; });
         function gauss() {
@@ -575,7 +607,7 @@
             tilt: (rnd() - 0.5) * 0.6, rr: (rnd() - 0.5) * 3.2, spin: (rnd() - 0.5) * 1.2,
             rs: cfg.rs[0] + cfg.rs[1] * rnd() * rnd(), dim: rnd() < cfg.dimP ? 0.45 : 1,
             rm: cfg.rm[0] + cfg.rm[1] * rnd(), ang: 0,
-            mc: white ? C_MID_GRAY : C_MID_BLUE, ky: kid.y
+            mc: white ? C_MID_GRAY : C_MID_BLUE, ky: kid.y, ti: kid.ti
           };
           q.rc = white ? C_WHITE : fc;
           if (q.dim < 1) q.rc = [q.rc[0] * q.dim, q.rc[1] * q.dim, q.rc[2] * q.dim]; /* เศษบางส่วนหรี่ลง ให้วงกลมดูบางเหมือนในคลิป */
@@ -597,6 +629,10 @@
             q.emc = gray ? C_UI_MID : C_MID_BLUE;
           }
           parts.push(q);
+          /* ช่วงเวลาที่กระเบื้องแผ่นนี้ "ไม่ได้อยู่นิ่ง" (ก่อนชิ้นแรกเริ่มขยับ ถึงหลังชิ้นสุดท้ายตกกลับ) นอกช่วงนี้วาดเป็นแผ่นเดียวมุมโค้ง */
+          var tl = tiles[kid.ti];
+          if (q.s1 < tl.t0) tl.t0 = q.s1;
+          if (q.s3 + WK[2] > tl.t1) tl.t1 = q.s3 + WK[2];
         }
         /* กระจายมุมบนวงกลมให้สม่ำเสมอ โดยเรียงตามทิศที่ช่องนั้นอยู่ในโลโก้ เศษจึงพุ่งออกในทิศใกล้เคียงกับที่เคยอยู่ */
         var byA = parts.slice().sort(function (a, b) { return a.a0 - b.a0; });
@@ -628,7 +664,7 @@
         dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(4200000 / (W * H)))); /* จำกัดไม่เกิน ~4 ล้านพิกเซลต่อเฟรม ให้จอใหญ่ความละเอียดสูงยังลื่น */
         cv.width = Math.round(W * dpr);
         cv.height = Math.round(H * dpr);
-        cfg = W >= 1024 ? LAYOUTS.desktop : LAYOUTS.mobile;
+        cfg = W >= 1024 ? LAYOUTS.desktop : W >= 768 ? LAYOUTS.tablet : LAYOUTS.mobile;
         DW = cfg.cover ? 1920 : W;
         DH = cfg.cover ? 1080 : H;
         sc = cfg.cover ? Math.max(W / DW, H / DH) : 1;
@@ -690,10 +726,28 @@
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = "source-over";
       }
+      function drawFloor(p) {
+        var drift = seg(p, 0, WF[0]);
+        for (var i = 0; i < floorTiles.length; i++) {
+          var tl = floorTiles[i];
+          if (p > tl.t0 && p < tl.t1) continue; /* กำลังเคลื่อนที่ ให้ตัวอนุภาควาดแทน */
+          var x = tl.X / dpr + tl.dd * drift, y = tl.Y / dpr, w = tl.Wd / dpr, h = tl.Hd / dpr, rad = Math.min(h * 0.17, 7);
+          ctx.fillStyle = tl.css;
+          if (hasRR && rad * dpr >= 1.5) {
+            ctx.beginPath();
+            ctx.roundRect(x, y, w, h, rad);
+            ctx.fill();
+          } else {
+            ctx.fillRect(x, y, w, h);
+          }
+        }
+      }
       function drawParts(p) {
         var drift = seg(p, 0, WF[0]), ui = cfg.ui;
         for (var i = 0; i < parts.length; i++) {
           var q = parts[i], x, y, w, h, rot = 0, e, a, c, g, x0, y0, w0, h0, r0, ca, cm;
+          var tl = floorTiles[q.ti];
+          if (!(p > tl.t0 && p < tl.t1)) continue; /* แผ่นนี้อยู่นิ่ง วาดเป็นแผ่นเดียวใน drawFloor แล้ว */
           var s = seg(p, q.s3, q.s3 + WK[2]);
           if (s > 0) {
             /* เศษที่กระจายอยู่ -> ตกกลับเป็นกระเบื้องเดิมของตัวเอง (ขยายใหญ่ผ่านสีน้ำเงิน/เทาแล้วหรี่ลงเป็นสีพื้น) */
@@ -975,6 +1029,7 @@
         ctx.fillStyle = BG;
         ctx.fillRect(0, 0, W, H);
         drawGlow(p);
+        drawFloor(p);
         if (cfg.ui) drawUI(p);
         drawParts(p);
       }
