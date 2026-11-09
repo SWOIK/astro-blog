@@ -6,7 +6,12 @@
   - ข้อความ ปุ่ม เป็น HTML จริง (Google อ่านได้) จัดสไตล์ด้วย class ไม่ผูกกับชื่อ tag
     จึงเปลี่ยน <div class="swk-lead"> / <h1 class="swk-title"> เป็น tag อื่นได้โดยแก้แค่ชื่อ tag เปิด-ปิด
   ปรับความยาวการเลื่อน: --swk-len (มือถือ 300svh, เดสก์ท็อป 500svh)
+  ฟอนต์: IBM Plex Sans Thai (น้ำหนัก 400 และ 600) โหลดจาก Google Fonts ด้วย 3 บรรทัด <link> ด้านล่าง
+  ถ้าเว็บโหลดฟอนต์นี้ไว้แล้ว (เช่นตั้งใน Elementor Global Fonts / Custom Fonts) ให้ลบ 3 บรรทัดนั้นออก เพื่อไม่ให้โหลดซ้ำ
 -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;600&amp;display=swap" />
 <style>
   .swk-hero {
     --swk-len: 300svh; /* ระยะ scroll ที่ใช้เล่นแอนิเมชัน */
@@ -27,7 +32,7 @@
     height: 400vh; /* fallback เบราว์เซอร์เก่าที่ไม่รู้จัก svh */
     height: calc(100svh + var(--swk-len));
     background: var(--swk-bg);
-    font-family: var(--swk-font, inherit); /* ค่าเริ่มต้น = ฟอนต์ของเว็บไซต์ ไม่โหลดฟอนต์เพิ่ม */
+    font-family: var(--swk-font, "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif); /* เปลี่ยนฟอนต์ได้ด้วย --swk-font */
   }
   .swk-stage {
     position: sticky;
@@ -58,7 +63,7 @@
   .swk-hero .swk-lead {
     margin: 0;
     color: var(--swk-white);
-    font-size: 16px;
+    font-size: 15px;
     line-height: 24px;
     font-weight: 400;
   }
@@ -70,7 +75,7 @@
     border: 1px solid var(--swk-chip-line);
     border-radius: 4px;
     background: var(--swk-chip-bg);
-    font-size: 16px;
+    font-size: 13px;
     line-height: 28px;
     text-decoration: none;
   }
@@ -97,8 +102,8 @@
   .swk-hero .swk-title {
     margin: 0 0 28px;
     padding: 0;
-    font-size: clamp(28px, 9.2vw, 40px);
-    line-height: 1.25;
+    font-size: clamp(28px, 9vw, 40px);
+    line-height: 1.28;
     font-weight: 400;
     letter-spacing: 0;
   }
@@ -125,7 +130,7 @@
     min-height: 44px;
     padding: 0 12px;
     border-radius: 4px;
-    font-size: 16px;
+    font-size: 13px;
     line-height: 1;
     font-weight: 600;
     text-decoration: none;
@@ -145,6 +150,12 @@
     background: #ffffff;
     color: var(--swk-dark);
   }
+  .swk-hero .swk-lead,
+  .swk-hero .swk-title,
+  .swk-hero .swk-chip,
+  .swk-hero .swk-btn {
+    font-family: inherit; /* กัน theme / Elementor Kit ตั้งฟอนต์ทับ h1, a */
+  }
   .swk-hero a:focus-visible {
     outline: 2px solid #ffffff;
     outline-offset: 2px;
@@ -163,15 +174,16 @@
       --swk-lead-top: 120px;
       --swk-bottom: 56px;
     }
-    .swk-hero .swk-lead,
-    .swk-hero .swk-chip {
-      font-size: 20px;
-    }
     .swk-hero .swk-lead {
-      line-height: 32px;
+      font-size: 18px;
+      line-height: 1.6;
+    }
+    .swk-hero .swk-chip {
+      font-size: 15px;
     }
     .swk-hero .swk-title {
       font-size: clamp(40px, 6.6vw, 60px);
+      line-height: 1.25;
       margin-bottom: 36px;
     }
     .swk-actions {
@@ -180,7 +192,7 @@
     }
     .swk-hero .swk-btn {
       min-height: 52px;
-      font-size: 18px;
+      font-size: 16px;
     }
   }
 
@@ -196,16 +208,16 @@
       right: auto;
     }
     .swk-hero .swk-lead {
-      font-size: clamp(18px, 1.48vw, 24px);
-      line-height: 1.5;
+      font-size: clamp(16px, 1.389vw, 22px);
+      line-height: 1.6;
     }
     .swk-foot {
       right: auto;
       bottom: clamp(48px, 11.5svh, 120px);
     }
     .swk-hero .swk-title {
-      font-size: clamp(44px, 4.44vw, 72px);
-      line-height: 1.17;
+      font-size: clamp(44px, 4.33vw, 70px);
+      line-height: 1.2;
       margin-bottom: clamp(28px, 3.1vw, 45px);
     }
     .swk-actions {
@@ -214,6 +226,7 @@
     .swk-hero .swk-btn {
       flex: none;
       padding: 0 24px;
+      font-size: 14px;
     }
   }
   @media (prefers-reduced-motion: reduce) {
